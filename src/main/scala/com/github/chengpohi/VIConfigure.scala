@@ -1,17 +1,19 @@
 package com.github.chengpohi
 
 import ammonite.repl.frontend.ReplAPI
-import com.github.chengpohi.VIFilters.{viFilter, VIHistoryFilter}
+import ammonite.terminal.TermCore
+import com.github.chengpohi.VIFilters.{VIHistoryFilter, viFilter}
 
 /**
  * ammonite
  * Created by chengpohi on 12/6/15.
  */
 object VIConfigure {
-  def apply(repl: ReplAPI, wd: => ammonite.ops.Path) = {
+  def apply(repl: ReplAPI, wd: => ammonite.ops.Path, extraFilters: TermCore.Filter = PartialFunction.empty) = {
     repl.frontEnd() = ammonite.repl.frontend.AmmoniteFrontEnd(
-      viFilter orElse
-      VIHistoryFilter(repl.fullHistory)
+      extraFilters orElse
+      VIHistoryFilter(repl.fullHistory) orElse
+      viFilter
     )
 
     repl.prompt.bind(
