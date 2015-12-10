@@ -10,9 +10,11 @@ import com.github.chengpohi.VIFilters.{VIHistoryFilter, viFilter}
  */
 object VIConfigure {
   def apply(repl: ReplAPI, wd: => ammonite.ops.Path, extraFilters: TermCore.Filter = PartialFunction.empty) = {
+    val viHistoryFilter = VIHistoryFilter(repl.fullHistory)
+
     repl.frontEnd() = ammonite.repl.frontend.AmmoniteFrontEnd(
       extraFilters orElse
-      VIHistoryFilter(repl.fullHistory) orElse
+      viHistoryFilter orElse
       viFilter
     )
 

@@ -14,7 +14,7 @@ ivyScala := ivyScala.value map {
 
 libraryDependencies ++= {
   Seq(
-    "com.lihaoyi" % "ammonite-repl_2.11.7" % "0.5.0"
+    "com.lihaoyi" % "ammonite-repl_2.11.7" % "0.5.1"
   )
 }
 

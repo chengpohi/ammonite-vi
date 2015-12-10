@@ -1,19 +1,20 @@
 package com.github.chengpohi
 
+import ammonite.repl.{History, StableRef}
 import ammonite.terminal.FilterTools._
 import ammonite.terminal.GUILikeFilters.{wordLeft, wordRight}
 import ammonite.terminal.LazyList._
 import ammonite.terminal.ReadlineFilters.CutPasteFilter
-import ammonite.terminal.{ReadlineFilters, TermCore}
 import ammonite.terminal.TermCore.Filter
+import ammonite.terminal.{ReadlineFilters, TermCore}
 
 /**
  * Ammonite VI Mode
  * Created by chengpohi on 12/5/15.
  */
 object VIFilters {
-  var VI_MODE = false
-  var VISUAL_MODE = false
+  var VI_MODE = true
+  var VISUAL_MODE = true
   lazy val cutPasteFilter = CutPasteFilter()
 
   val viFilter = {
@@ -78,8 +79,8 @@ object VIFilters {
       TS(rest, b, b.size)
   }
 
-  case class VIHistoryFilter(history: Seq[String]) extends TermCore.DelegateFilter {
-    val historyFilter = ReadlineFilters.HistoryFilter(() => history.reverse)
+  case class VIHistoryFilter(history: StableRef[History]) extends TermCore.DelegateFilter {
+    val historyFilter = ReadlineFilters.HistoryFilter(() => history().reverse)
 
     override def filter: Filter = {
       case TS('j' ~: rest, b, c) if VISUAL_MODE =>
