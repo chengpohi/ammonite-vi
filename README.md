@@ -1,5 +1,29 @@
-Enable VI mode in Ammonite repl, For now it supports:
+This plugin is used to enable VI mode in Ammonite repl, 
+##How to Use
+Edit `~/.ammonite/predef.scala`
 
+```
+load.ivy("com.lihaoyi" %% "ammonite-shell" % "0.5.1")
+load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.0")
+@
+val shellSession = ammonite.shell.ShellSession()
+import shellSession._
+import ammonite.shell.PPrints._
+import ammonite.ops._
+import scala.io._
+import com.github.chengpohi.VIConfigure
+repl.frontEnd() match {
+  case ammoniteFrontEnd: ammonite.repl.frontend.AmmoniteFrontEnd => { 
+    println("AmmoniteFrontEnd VI Mode")
+    val pathCompleteFilter = ammonite.shell.PathComplete.pathCompleteFilter(wd, repl.colors())
+    com.github.chengpohi.VIConfigure(repl, wd, pathCompleteFilter)
+  }
+  case _ => ammonite.shell.Configure(repl, wd)
+}
+```
+
+
+##Support shortcuts
 
 |ShortCut | Function|
 |:----|:----|
