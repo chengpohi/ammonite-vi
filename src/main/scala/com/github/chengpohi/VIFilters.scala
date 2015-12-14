@@ -1,6 +1,5 @@
 package com.github.chengpohi
 
-import ammonite.repl.{History, StableRef}
 import ammonite.terminal.FilterTools._
 import ammonite.terminal.GUILikeFilters.{wordLeft, wordRight}
 import ammonite.terminal.LazyList._
@@ -79,8 +78,8 @@ object VIFilters {
       TS(rest, b, b.size)
   }
 
-  case class VIHistoryFilter(history: StableRef[History]) extends TermCore.DelegateFilter {
-    val historyFilter = ReadlineFilters.HistoryFilter(() => history().reverse)
+  case class VIHistoryFilter(history: () => Seq[String]) extends TermCore.DelegateFilter {
+    val historyFilter = ReadlineFilters.HistoryFilter(history)
 
     override def filter: Filter = {
       case TS('j' ~: rest, b, c) if VISUAL_MODE =>
