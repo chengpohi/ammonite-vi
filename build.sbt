@@ -2,7 +2,7 @@ organization := "com.github.chengpohi"
 
 name := "ammonite-vi"
 
-version := "1.0"
+version := "1.1-SNAPSHOT"
 
 publishMavenStyle := true
 

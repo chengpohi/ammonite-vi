@@ -5,7 +5,7 @@ import ammonite.terminal.GUILikeFilters.{wordLeft, wordRight}
 import ammonite.terminal.LazyList._
 import ammonite.terminal.ReadlineFilters.CutPasteFilter
 import ammonite.terminal.TermCore.Filter
-import ammonite.terminal.{ReadlineFilters, TermCore}
+import ammonite.terminal.{TermInfo, ReadlineFilters, TermCore}
 
 /**
  * Ammonite VI Mode
@@ -18,9 +18,9 @@ object VIFilters {
 
   val viFilter = {
     enableViFilter orElse
-    viSingleKeyFilter orElse
-    viNavFilter orElse
-    viEditModeFilter
+      viSingleKeyFilter orElse
+      viNavFilter orElse
+      viEditModeFilter
   }
 
   def enableViFilter: TermCore.Filter = {
@@ -49,11 +49,17 @@ object VIFilters {
     case TS('a' ~: rest, b, c) if VISUAL_MODE =>
       VISUAL_MODE = false
       TS(rest, b, c + 1)
-    /*case TS('x' ~: rest, b, c) if VISUAL_MODE =>
-      val right: (Vector[Char], Int) = cutPasteFilter.cutCharCursor(b, c)
-      TS(rest, right._1, right._2)*/
+    case TS('x' ~: rest, b, c) if VISUAL_MODE =>
+      TS(rest, b patch(from = c, patch = Nil, replaced = 1), c)
     case TS('d' ~: 'd' ~: rest, b, c) if VISUAL_MODE =>
       TS(rest, b.take(0), 0)
+    case TS('d' ~: 'w' ~: rest, b, c) if VISUAL_MODE =>
+      val right: (Vector[Char], Int) = cutPasteFilter.cutWordRight(b, c)
+      TS(rest, right._1, right._2)
+    case TS('c' ~: 'w' ~: rest, b, c) if VISUAL_MODE =>
+      VISUAL_MODE = false
+      val right: (Vector[Char], Int) = cutPasteFilter.cutWordRight(b, c)
+      TS(rest, right._1, right._2)
     case TS('D' ~: rest, b, c) if VISUAL_MODE =>
       val right: (Vector[Char], Int) = cutPasteFilter.cutAllRight(b, c)
       TS(rest, right._1, right._2)
@@ -80,11 +86,19 @@ object VIFilters {
 
   case class VIHistoryFilter(history: () => Seq[String]) extends TermCore.DelegateFilter {
     val historyFilter = ReadlineFilters.HistoryFilter(history)
+    var oldHistoryLength: Int = history().length
+
+    def checkOldHistoryLength() = if (history().length > oldHistoryLength) {
+      oldHistoryLength = history().length
+      historyFilter.index = -1
+    }
 
     override def filter: Filter = {
-      case TS('j' ~: rest, b, c) if VISUAL_MODE =>
+      case TermInfo(TS(p"j$rest", b, c), w) if VISUAL_MODE && lastRow(c, b, w) =>
+        checkOldHistoryLength()
         historyFilter.nextHistory(b, rest)
-      case TS('k' ~: rest, b, c) if VISUAL_MODE =>
+      case TermInfo(TS(p"k$rest", b, c), w) if VISUAL_MODE && firstRow(c, b, w) =>
+        checkOldHistoryLength()
         historyFilter.previousHistory(b, rest)
     }
   }
