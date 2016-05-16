@@ -4,7 +4,7 @@ Edit `~/.ammonite/predef.scala`
 
 ```
 load.ivy("com.lihaoyi" %% "ammonite-shell" % "0.5.1")
-load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.0")
+load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.1")
 @
 val shellSession = ammonite.shell.ShellSession()
 import shellSession._
