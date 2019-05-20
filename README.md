@@ -1,10 +1,9 @@
 This plugin is used to enable VI mode in Ammonite repl, 
-##How to Use
+## How to Use
 Edit `~/.ammonite/predef.scala`
 
 ```
-load.ivy("com.lihaoyi" %% "ammonite-shell" % "0.5.1")
-load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.1")
+interp.load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.2")
 @
 val shellSession = ammonite.shell.ShellSession()
 import shellSession._
@@ -23,7 +22,7 @@ repl.frontEnd() match {
 ```
 
 
-##Support shortcuts
+## Support shortcuts
 
 |ShortCut | Function|
 |:----|:----|

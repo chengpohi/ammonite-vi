@@ -2,24 +2,17 @@ organization := "com.github.chengpohi"
 
 name := "ammonite-vi"
 
-version := "1.1-SNAPSHOT"
+version := "1.2-SNAPSHOT"
 
 publishMavenStyle := true
 
-scalaVersion := "2.11.7"
-
-ivyScala := ivyScala.value map {
-  _.copy(overrideScalaVersion = true)
-}
+scalaVersion := "2.12.8"
 
 libraryDependencies ++= {
   Seq(
-    "com.lihaoyi" % "ammonite-repl_2.11.7" % "0.5.1"
+    "com.lihaoyi" % "ammonite-repl_2.12.3" % "1.6.7-1-a44339b"
   )
 }
-
-resolvers ++= Seq(
-)
 
 
 publishArtifact in Test := false
