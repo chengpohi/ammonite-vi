@@ -5,11 +5,11 @@ import ammonite.terminal.Filter
 import com.github.chengpohi.ViFilters.viFilters
 
 /**
-  * ammonite
+  * ammonite vi
   * Created by chengpohi on 12/6/15.
   */
-object ViMode {
-  def apply(repl: ReplAPI, wd: => ammonite.ops.Path, extraFilters: Filter = Filter.empty) = {
+object VIMode {
+  def apply(repl: ReplAPI, wd: => ammonite.ops.Path, extraFilters: Filter = Filter.empty): Unit = {
     repl.frontEnd() = AmmoniteFrontEnd(
       Filter.merge(
         extraFilters,

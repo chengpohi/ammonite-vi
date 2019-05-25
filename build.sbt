@@ -2,7 +2,7 @@ organization := "com.github.chengpohi"
 
 name := "ammonite-vi"
 
-version := "1.2-SNAPSHOT"
+version := "1.6-1-SNAPSHOT"
 
 publishMavenStyle := true
 
@@ -10,7 +10,8 @@ scalaVersion := "2.12.8"
 
 libraryDependencies ++= {
   Seq(
-    "com.lihaoyi" % "ammonite-repl_2.12.3" % "1.6.7-1-a44339b"
+    "com.lihaoyi" % "ammonite-repl_2.12.8" % "1.6.7-1-a44339b",
+    "com.lihaoyi" % "ammonite-shell_2.12.8" % "1.6.7-1-a44339b"
   )
 }
 

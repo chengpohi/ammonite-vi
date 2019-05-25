@@ -1,10 +1,12 @@
 package com.github.chengpohi
 
 import ammonite.repl.ReplAPI
+import ammonite.terminal.Filter.partial
 import ammonite.terminal.FilterTools._
+import ammonite.terminal.LazyList.~:
 import ammonite.terminal._
 import ammonite.terminal.filters.ReadlineFilters.CutPasteFilter
-import ammonite.terminal.filters.{GUILikeFilters, HistoryFilter}
+import ammonite.terminal.filters.{BasicFilters, GUILikeFilters, HistoryFilter}
 
 /**
   * Ammonite VI Mode
@@ -12,115 +14,141 @@ import ammonite.terminal.filters.{GUILikeFilters, HistoryFilter}
   */
 object ViFilters {
   var VI_MODE = true
-  var VISUAL_MODE = true
+  var VISUAL_MODE = false
+  private val ESC_KEY = 27.toChar.toString
+  private val ENTER_KEY = 13.toChar.toString
+  private val SHIFT_KEY = 16.toChar.toString
+
   lazy val cutPasteFilter = CutPasteFilter()
 
-  def viFilters(repl: ReplAPI) = Filter.merge(
-
+  def viFilters(repl: ReplAPI): Filter = Filter.merge(
     viKeysFilter,
-    viSingleKeyFilter,
     viNavFilter,
     viEditModeFilter,
     ViHistoryFilter(() => repl.fullHistory.reverse, repl.codeColorsImplicit.comment),
   )
 
   def viKeysFilter: Filter = Filter.merge(
-    Filter.action(Seq("27", "13")) {
+    Filter.action(ESC_KEY + ENTER_KEY) {
       case TermState(rest, b, c, _) => {
         VI_MODE = !VI_MODE
         VISUAL_MODE = VI_MODE
         TS(rest, b, c)
       }
     },
-    Filter.action(Seq("27", "10")) {
-      case TermState(rest, b, c, _) => {
-        VI_MODE = !VI_MODE
-        VISUAL_MODE = VI_MODE
+    Filter.action(ESC_KEY) {
+      case TermState(rest, b, c, _) if VI_MODE =>
+        VISUAL_MODE = true
         TS(rest, b, c)
-      }
+      case TermState(rest, b, c, _) =>
+        TS(rest, b, c)
     }
   )
-
-  def viSingleKeyFilter: Filter = Filter.action(Seq("27")) {
-    case TermState(rest, b, c, _) if VI_MODE =>
-      VISUAL_MODE = true
-      TS(rest, b, c)
-  }
 
   def viEditModeFilter: Filter = Filter.merge(
     Filter.action("i") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         VISUAL_MODE = false
         TS(rest, b, c)
+      case TermState(rest, b, c, _) =>
+        VISUAL_MODE = false
+        TS(rest, (b.take(c) :+ 'i') ++ b.drop(c), c + 1)
     }
     ,
-
     Filter.action("a") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         VISUAL_MODE = false
         TS(rest, b, c + 1)
+      case TermState(rest, b, c, _) =>
+        VISUAL_MODE = false
+        TS(rest, (b.take(c) :+ 'a') ++ b.drop(c), c + 1)
     }
     ,
     Filter.action("x") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b patch(from = c, patch = Nil, replaced = 1), c)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'x') ++ b.drop(c), c + 1)
     }
     ,
 
-    Filter.action(Seq("d", "d")) {
+    Filter.action("dd") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b.take(0), 0)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'd') ++ b.drop(c), c + 1)
     }
     ,
-    Filter.action(Seq("d", "w")) {
+    Filter.action(Seq("dw")) {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         val right: (Vector[Char], Int) = cutPasteFilter.cutWordRight(b, c)
         TS(rest, right._1, right._2)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'd') ++ b.drop(c), c + 1)
     }
     ,
-    Filter.action(Seq("c", "w")) {
+    Filter.action(Seq("cw")) {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         VISUAL_MODE = false
         val right: (Vector[Char], Int) = cutPasteFilter.cutWordRight(b, c)
         TS(rest, right._1, right._2)
-    }
-    ,
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'c') ++ b.drop(c), c + 1)
+    },
     Filter.action("D") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         val right: (Vector[Char], Int) = cutPasteFilter.cutLineRight(b, c)
         TS(rest, right._1, right._2)
-    }
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'D') ++ b.drop(c), c + 1)
+    },
+    BasicFilters.enterFilter
   )
 
   def viNavFilter: Filter = Filter.merge(
     Filter.action("h") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b, c - 1)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'h') ++ b.drop(c), c + 1)
     },
     Filter.action("l") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b, c + 1)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'l') ++ b.drop(c), c + 1)
     },
-
     Filter.action("0") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b, 0)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ '0') ++ b.drop(c), c + 1)
     },
-
+    Filter.action("$") {
+      case TermState(rest, b, c, _) if VISUAL_MODE =>
+        TS(rest, b, b.size)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ '$') ++ b.drop(c), c + 1)
+    },
     Filter.action("b") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         val left = GUILikeFilters.wordLeft(b, c)
         TS(rest, left._1, left._2)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'b') ++ b.drop(c), c + 1)
     },
-
     Filter.action("w") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         val right = GUILikeFilters.wordRight(b, c)
         TS(rest, right._1, right._2)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'w') ++ b.drop(c), c + 1)
     },
     Filter.action(":") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b, b.size)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ ':') ++ b.drop(c), c + 1)
     }
   )
 
@@ -128,15 +156,23 @@ object ViFilters {
   case class ViHistoryFilter(history: () => IndexedSeq[String], comment: fansi.Attrs) extends DelegateFilter {
     val historyFilter = new HistoryFilter(history, comment)
     var oldHistoryLength: Int = history().length
+
     override def filter: Filter = Filter.merge(
-      Filter.action("k", ti => historyFilter.searchOrHistoryAnd(firstRowInfo(ti))) {
+      Filter.action("k") {
         case ts if VISUAL_MODE =>
           historyFilter.wrap(ts.inputs, historyFilter.up(ts.buffer, ts.cursor))
+        case TermState(rest, b, c, _) =>
+          TS(rest, (b.take(c) :+ 'k') ++ b.drop(c), c + 1)
       },
-      Filter.action("j", ti => historyFilter.searchOrHistoryAnd(firstRowInfo(ti))) {
+      Filter.action("j") {
         case ts if VISUAL_MODE =>
-          historyFilter.wrap(ts.inputs, historyFilter.up(ts.buffer, ts.cursor))
           historyFilter.wrap(ts.inputs, historyFilter.down(ts.buffer, ts.cursor))
+        case TermState(rest, b, c, _) =>
+          TS(rest, (b.take(c) :+ 'j') ++ b.drop(c), c + 1)
+      },
+      partial {
+        case TS(char ~: rest, b, c, _) if VISUAL_MODE =>
+          TS(rest, b, c)
       }
     )
   }

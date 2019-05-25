@@ -10,12 +10,9 @@ import shellSession._
 import ammonite.shell.PPrints._
 import ammonite.ops._
 import scala.io._
-import com.github.chengpohi.VIConfigure
 repl.frontEnd() match {
-  case ammoniteFrontEnd: ammonite.repl.frontend.AmmoniteFrontEnd => { 
-    println("AmmoniteFrontEnd VI Mode")
-    val pathCompleteFilter = ammonite.shell.PathComplete.pathCompleteFilter(wd, repl.colors())
-    com.github.chengpohi.VIConfigure(repl, wd, pathCompleteFilter)
+  case ammoniteFrontEnd: ammonite.repl.AmmoniteFrontEnd => { 
+    com.github.chengpohi.VIMode(repl, wd)
   }
   case _ => ammonite.shell.Configure(repl, wd)
 }
