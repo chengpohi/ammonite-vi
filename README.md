@@ -1,9 +1,11 @@
-This plugin is used to enable Vi mode in Ammonite 1.6 repl, 
+This plugin is used to enable vi key bindings for Ammonite repl, 
+
 ## SetUp
 Edit `~/.ammonite/predef.sc`
 
 ```
-interp.load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.6-1-SNAPSHOT")
+//1.6.1 version support ammonite repl 1.6.1 version
+interp.load.ivy("com.github.chengpohi" %% "ammonite-vi" % "1.6.1")
 
 @
 
