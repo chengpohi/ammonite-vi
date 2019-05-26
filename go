@@ -14,6 +14,9 @@ case "$1" in
   "pbLocal")
     sbt publishLocal
     ;;
+  "pb")
+    sbt publish
+    ;;
   *)
     sbt clean compile
     ;;

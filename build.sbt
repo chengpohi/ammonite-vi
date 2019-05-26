@@ -2,7 +2,7 @@ organization := "com.github.chengpohi"
 
 name := "ammonite-vi"
 
-version := "1.6-1-SNAPSHOT"
+version := "1.6.1"
 
 publishMavenStyle := true
 
@@ -15,10 +15,11 @@ libraryDependencies ++= {
   )
 }
 
-
 publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false }
+
+publishConfiguration := publishConfiguration.value.withOverwrite(true)
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
@@ -49,4 +50,11 @@ pomExtra := (
       <url>https://github.com/chengpohi/ammonite-vi</url>
     </developer>
   </developers>
+)
+
+credentials += Credentials(
+  "GnuPG Key ID",
+  "gpg",
+  "FB278B5E847B2AF4BEDD7F4EABD0514E703CEFDB", // key identifier
+  "ignored" // this field is ignored; passwords are supplied by pinentry
 )

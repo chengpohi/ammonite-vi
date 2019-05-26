@@ -64,11 +64,27 @@ object ViFilters {
         TS(rest, (b.take(c) :+ 'a') ++ b.drop(c), c + 1)
     }
     ,
+    Filter.action("A") {
+      case TermState(rest, b, c, _) if VISUAL_MODE =>
+        VISUAL_MODE = false
+        TS(rest, b, b.size + 1)
+      case TermState(rest, b, c, _) =>
+        VISUAL_MODE = false
+        TS(rest, (b.take(c) :+ 'a') ++ b.drop(c), c + 1)
+    }
+    ,
     Filter.action("x") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         TS(rest, b patch(from = c, patch = Nil, replaced = 1), c)
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ 'x') ++ b.drop(c), c + 1)
+    }
+    ,
+    Filter.action("r") {
+      case TermState(char ~: rest, b, c, _) if VISUAL_MODE =>
+        TS(rest, b patch(from = c, patch = Seq(char.toChar), replaced = 1), c)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'r') ++ b.drop(c), c + 1)
     }
     ,
 
@@ -102,6 +118,17 @@ object ViFilters {
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ 'D') ++ b.drop(c), c + 1)
     },
+    Filter.action("~") {
+      case TermState(rest, b, c, _) if VISUAL_MODE =>
+        val t = b.lift(c) match {
+          case Some(j) if j.isUpper => Seq(j.toLower)
+          case Some(j) => Seq(j.toUpper)
+          case None => Seq()
+        }
+        TS(rest, b patch(from = c, patch = t, replaced = 1), c + 1)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ '~') ++ b.drop(c), c + 1)
+    },
     BasicFilters.enterFilter
   )
 
@@ -117,6 +144,12 @@ object ViFilters {
         TS(rest, b, c + 1)
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ 'l') ++ b.drop(c), c + 1)
+    },
+    Filter.action(" ") {
+      case TermState(rest, b, c, _) if VISUAL_MODE =>
+        TS(rest, b, c + 1)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ ' ') ++ b.drop(c), c + 1)
     },
     Filter.action("0") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
@@ -140,9 +173,16 @@ object ViFilters {
     Filter.action("w") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
         val right = GUILikeFilters.wordRight(b, c)
-        TS(rest, right._1, right._2)
+        TS(rest, right._1, right._2 + 1)
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ 'w') ++ b.drop(c), c + 1)
+    },
+    Filter.action("e") {
+      case TermState(rest, b, c, _) if VISUAL_MODE =>
+        val right = GUILikeFilters.wordRight(b, c)
+        TS(rest, right._1, right._2 - 1)
+      case TermState(rest, b, c, _) =>
+        TS(rest, (b.take(c) :+ 'e') ++ b.drop(c), c + 1)
     },
     Filter.action(":") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
