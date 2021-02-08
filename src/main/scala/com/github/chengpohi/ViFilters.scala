@@ -1,17 +1,18 @@
 package com.github.chengpohi
 
-import ammonite.repl.ReplAPI
-import ammonite.terminal.Filter.partial
+import ammonite.repl.api.ReplAPI
+import ammonite.terminal.Filter.{action, partial}
 import ammonite.terminal.FilterTools._
 import ammonite.terminal.LazyList.~:
 import ammonite.terminal._
+import ammonite.terminal.filters.BasicFilters.{doEnter, enterFilter, injectNewLine}
 import ammonite.terminal.filters.ReadlineFilters.CutPasteFilter
 import ammonite.terminal.filters.{BasicFilters, GUILikeFilters, HistoryFilter}
 
 /**
-  * Ammonite VI Mode
-  * Created by chengpohi on 12/5/15.
-  */
+ * Ammonite VI Mode
+ * Created by chengpohi on 12/5/15.
+ */
 object ViFilters {
   var VI_MODE = true
   var VISUAL_MODE = false
@@ -75,14 +76,14 @@ object ViFilters {
     ,
     Filter.action("x") {
       case TermState(rest, b, c, _) if VISUAL_MODE =>
-        TS(rest, b patch(from = c, patch = Nil, replaced = 1), c)
+        TS(rest, b patch(from = c, other = Nil, replaced = 1), c)
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ 'x') ++ b.drop(c), c + 1)
     }
     ,
     Filter.action("r") {
       case TermState(char ~: rest, b, c, _) if VISUAL_MODE =>
-        TS(rest, b patch(from = c, patch = Seq(char.toChar), replaced = 1), c)
+        TS(rest, b patch(from = c, other = Seq(char.toChar), replaced = 1), c)
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ 'r') ++ b.drop(c), c + 1)
     }
@@ -125,11 +126,10 @@ object ViFilters {
           case Some(j) => Seq(j.toUpper)
           case None => Seq()
         }
-        TS(rest, b patch(from = c, patch = t, replaced = 1), c + 1)
+        TS(rest, b patch(from = c, other = t, replaced = 1), c + 1)
       case TermState(rest, b, c, _) =>
         TS(rest, (b.take(c) :+ '~') ++ b.drop(c), c + 1)
     },
-    BasicFilters.enterFilter
   )
 
   def viNavFilter: Filter = Filter.merge(
@@ -197,6 +197,15 @@ object ViFilters {
     val historyFilter = new HistoryFilter(history, comment)
     var oldHistoryLength: Int = history().length
 
+
+    def enterFilter: Filter = action(SpecialKeys.NewLine){
+      case TS(rest, b, c, _) => {
+        VISUAL_MODE = false
+        historyFilter.endHistory()
+        doEnter(b, c, rest)
+      } // Enter
+    }
+
     override def filter: Filter = Filter.merge(
       Filter.action("k") {
         case ts if VISUAL_MODE =>
@@ -210,9 +219,11 @@ object ViFilters {
         case TermState(rest, b, c, _) =>
           TS(rest, (b.take(c) :+ 'j') ++ b.drop(c), c + 1)
       },
+      enterFilter,
       partial {
-        case TS(char ~: rest, b, c, _) if VISUAL_MODE =>
+        case TS(char ~: rest, b, c, _) if VISUAL_MODE => {
           TS(rest, b, c)
+        }
       }
     )
   }
