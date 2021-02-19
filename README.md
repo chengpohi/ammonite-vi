@@ -8,7 +8,7 @@ Ammonite: 2.X
 Edit `~/.ammonite/predef.sc`
 
 ```
-interp.load.ivy("com.github.chengpohi" %% "ammonite-vi" % "2.X-SNAPSHOT")
+interp.load.ivy("com.github.chengpohi" %% "ammonite-vi" % "2.0")
 
 @
 
